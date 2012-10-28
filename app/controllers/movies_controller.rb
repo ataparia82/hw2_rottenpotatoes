@@ -7,11 +7,24 @@ class MoviesController < ApplicationController
   end
 
   def index
-    @movies = Movie.all
+    
+    @all_ratings = Movie.AllRatings
+
+    @checked_ratings = Hash.new
+
+    # makes sure that for the first time when the user hits the page, all the checkboxes are selected by default
+    if params[:ratings].nil?
+      @checked_ratings = @all_ratings
+    else
+      @checked_ratings = params[:ratings].keys
+    end
+
     if !params[:sort].nil?
       @sort_order = params[:sort]
-      @movies = Movie.order(params[:sort]).all
+      @movies = Movie.where('rating' => @checked_ratings).order(params[:sort]).all
       @title_header = 'hilite'
+    else
+      @movies = Movie.where('rating' => @checked_ratings)
     end
   end
 
