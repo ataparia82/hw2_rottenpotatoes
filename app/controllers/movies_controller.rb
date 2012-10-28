@@ -10,21 +10,35 @@ class MoviesController < ApplicationController
     
     @all_ratings = Movie.AllRatings
 
-    @checked_ratings = Hash.new
-
-    # makes sure that for the first time when the user hits the page, all the checkboxes are selected by default
-    if params[:ratings].nil?
-      @checked_ratings = @all_ratings
-    else
-      @checked_ratings = params[:ratings].keys
+    if session[:checked_ratings].nil?
+      # makes sure that for the first time when the user hits the page, all the checkboxes are selected by default
+      if !params[:ratings].nil?
+        session[:checked_ratings] = params[:ratings].keys
+      elsif params[:ratings].nil?
+        session[:checked_ratings] = @all_ratings
+      elsif session[:checked_ratings].nil?
+        session[:checked_ratings] = @all_ratings
+      end
+    elsif !params[:ratings].nil?
+      session[:checked_ratings] = params[:ratings].keys
     end
 
-    if !params[:sort].nil?
-      @sort_order = params[:sort]
-      @movies = Movie.where('rating' => @checked_ratings).order(params[:sort]).all
+    @checked_ratings = session[:checked_ratings]
+
+    if session[:sort_column].nil?
+      if !params[:sort].nil?
+        session[:sort_column] = params[:sort]
+      end
+    elsif !params[:sort].nil?
+      session[:sort_column] = params[:sort]
+    end
+
+    if !session[:sort_column].nil?
+      @sort_column = session[:sort_column]
+      @movies = Movie.where('rating' => session[:checked_ratings]).order(@sort_column).all
       @title_header = 'hilite'
     else
-      @movies = Movie.where('rating' => @checked_ratings)
+      @movies = Movie.where('rating' => session[:checked_ratings])
     end
   end
 
