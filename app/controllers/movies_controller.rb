@@ -9,23 +9,31 @@ class MoviesController < ApplicationController
   def index
     @all_ratings = Movie.AllRatings
 
-    # makes sure that for the first time when the user hits the page, all the checkboxes are selected by default
+    # saving the filter settings in session.
     if params[:ratings].nil? and session[:checked_ratings].nil?
-      #@checked_ratings = @all_ratings
       session[:checked_ratings] = @all_ratings
     elsif !params[:ratings].nil?
-      #@checked_ratings = params[:ratings].keys
       session[:checked_ratings] = params[:ratings].keys
     end
-
     @checked_ratings = session[:checked_ratings]
 
+    # saving the sort settings in session
     if !params[:sort].nil?
-       @sort_order = params[:sort]
-       @movies = Movie.where('rating' => @checked_ratings).order(params[:sort]).all
+      session[:sort_order] = params[:sort]
+    end
+    @sort_order = session[:sort_order]
+
+    if !@sort_order.nil?
+       @movies = Movie.where('rating' => @checked_ratings).order(@sort_order).all
        @title_header = 'hilite'
     else
       @movies = Movie.where('rating' => @checked_ratings)
+    end
+
+    flash.keep
+
+    if !session[:sort_order].nil? and !params.has_key?(:sort)
+      redirect_to movies_path(:sort=>"#{@sort_order}")
     end
   end
 
